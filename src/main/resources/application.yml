@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: REProject
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:REProject}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:456852}
+    hikari:
+      schema: public
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    open-in-view: true
+
+  flyway:
+    url: jdbc:postgresql://localhost:5432/REProject
+    user: postgres
+    password: 456852
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    encoding: UTF-8
+    schemas: public
+
+  logging:
+    level:
+      root: INFO
+      org.example: DEBUG
+    file:
+      name: logs/spring-boot-application.log
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
