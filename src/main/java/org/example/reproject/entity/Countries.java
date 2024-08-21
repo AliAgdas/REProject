@@ -22,6 +22,9 @@ public class Countries implements Serializable {
     @Column(name="recycle_bonus_usd")
     private double recycleBonusUsd;
 
+    @Column (name ="min_kg_for_bonus")
+    private double minKgForBonus;
+
     @OneToMany(mappedBy = "country_factories")
     @JsonIgnore
     private List<Factories> factoriesList;

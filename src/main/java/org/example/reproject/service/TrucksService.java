@@ -46,10 +46,13 @@ public class TrucksService {
                 truck = trucksRepository.findById(id).orElse(null);
                 if (truck != null) {
                     redisService.saveRedis("truck:" + id, truck);
+                    logger.info("veri redise yeni kaydedildi");
                 }
-                logger.info("veri redise yeni kaydedildi");
+                else{logger.error("böyle bir veri yok");}
             }
-            else{logger.info("veri redis den geldi");  }
+            else{
+                logger.info("veri redis den geldi");
+            }
 
             return truck;
         } catch (JsonProcessingException e) {
@@ -62,8 +65,12 @@ public class TrucksService {
         return trucksRepository.findById(id).get();
     }
 
+    public void lockTruck(Trucks truck) throws JsonProcessingException {
+        String redisKey = "lockedTruck:"+truck.getId();
+        redisService.lockRedis(redisKey,truck);
+    }
+
     public List<Trucks> findByIsFullFalseAndCountry(Countries country, double requiredKg) {
         return trucksRepository.findByIsFullFalseAndCountry(country,requiredKg);
     }
-
 }

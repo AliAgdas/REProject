@@ -29,7 +29,7 @@ public class CompaniesController {
 
     @GetMapping("/get")
     public ResponseEntity<Companies> getCompanies(@RequestParam int id) {
-        Companies companies = companiesService.getCompanies(id);
+        Companies companies = companiesService.getCompaniesRedis(id);
         return ResponseEntity.ok(companies);
     }
 

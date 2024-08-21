@@ -1,7 +1,6 @@
 package org.example.reproject.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.reproject.dto.*;
 import org.example.reproject.entity.*;
 import org.example.reproject.service.*;
 import org.springframework.http.HttpStatus;
@@ -36,8 +35,7 @@ public class FactoriesController {
 
     @GetMapping("/get")
     public ResponseEntity<Factories> getFactories(@RequestParam int id) {
-        Factories factories = factoriesService.getFactories(id);
+        Factories factories = factoriesService.getFactoriesRedis(id);
         return ResponseEntity.ok(factories);
     }
-
 }

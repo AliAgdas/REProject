@@ -4,7 +4,6 @@ import org.example.reproject.config.RabbitMQConfig;
 import org.example.reproject.entity.Trucks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,13 +47,19 @@ public class TrucksProducer {
             Trucks truck = truckPriority.truck;
             int priority = truckPriority.priority;
 
+            logger.info("Sending truck with maxCapacityKg: {} and priority: {}", truck.getMaxCapacityKg(), priority);
+
             rabbitTemplate.convertAndSend(RabbitMQConfig.FIFO_QUEUE_NAME, truck, message -> {
                 message.getMessageProperties().setPriority(priority);
                 return message;
             });
         }
+
+        Trucks terminatorTruck = new Trucks();
+        rabbitTemplate.convertAndSend(RabbitMQConfig.FIFO_QUEUE_NAME, terminatorTruck);
     }
 }
+
 
 
 

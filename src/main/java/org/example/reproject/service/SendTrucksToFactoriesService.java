@@ -1,5 +1,6 @@
 package org.example.reproject.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.reproject.entity.*;
@@ -8,13 +9,13 @@ import org.example.reproject.producer.TrucksProducer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SendTrucksToFactoriesService {
-    private final CompaniesService companiesService;
+    private final RedisService redisService;
     @Getter
     private double requiredKg;
-
     @Setter
     private static Trucks choosenTruck;
 
@@ -23,12 +24,12 @@ public class SendTrucksToFactoriesService {
     private final FactoriesService factoriesService;
     private final MaterialsService materialsService;
 
-    public SendTrucksToFactoriesService(TrucksProducer trucksProducer, TrucksService trucksService, FactoriesService factoriesService, MaterialsService materialsService, CompaniesService companiesService) {
+    public SendTrucksToFactoriesService(TrucksProducer trucksProducer, TrucksService trucksService, FactoriesService factoriesService, MaterialsService materialsService, RedisService redisService) {
         this.trucksProducer = trucksProducer;
         this.trucksService = trucksService;
         this.factoriesService = factoriesService;
         this.materialsService = materialsService;
-        this.companiesService = companiesService;
+        this.redisService = redisService;
     }
 
     public Factories getFactories(int id) {
@@ -43,25 +44,47 @@ public class SendTrucksToFactoriesService {
         this.requiredKg = kg;
     }
 
-    public Trucks getChoosenTruckEntity(){
+    public Trucks getChoosenTruck(){
         return this.choosenTruck;
     }
 
-    public Factories updateFactoriesAndTrucks(Factories factories, Materials material) {
-        Trucks newTruck = trucksService.getTruck(getChoosenTruckEntity().getId());
+    public Factories updateFactoriesAndTrucks(Factories factories, Materials material) throws JsonProcessingException {
+        Trucks newTruck = trucksService.getTruck(getChoosenTruck().getId());
         newTruck.setFull(true);
         newTruck.setFactory(factories);
         setChoosenTruck(newTruck);
-        trucksService.addTruck(newTruck);
+        trucksService.addTruckRedis(newTruck);
 
         Factories newFactory = factoriesService.getFactories(factories.getId());
-        newFactory.setTruck(getChoosenTruckEntity());
-        newFactory.setNowRecycleUsd((material.getPurchaseCostUsd()- material.getRecyclePurchaseCostUsd())*this.requiredKg);
-        return factoriesService.addFactories(newFactory);
+        newFactory.setTruck(getChoosenTruck());
+        newFactory.setNowRecycleUsd(recycleBenefitCalculation(factories,material));
+        waitTruck();
+        return factoriesService.addFactoriesRedis(newFactory);
+    }
+
+    public Trucks waitTruck() throws JsonProcessingException {
+        Trucks waitingTruck = this.getChoosenTruck();
+        trucksService.lockTruck(this.getChoosenTruck());
+        return waitingTruck;
+    }
+
+    private double recycleBenefitCalculation(Factories factories, Materials material) {
+        double materialRecycleBenefit = material.getPurchaseCostUsd()- material.getRecyclePurchaseCostUsd();
+        double totalPurchaseBenefit = materialRecycleBenefit*this.requiredKg;
+        double finalBenefit;
+        if(factories.getCountry_factories().getMinKgForBonus()<= this.requiredKg){
+            finalBenefit = totalPurchaseBenefit+factories.getCountry_factories().getRecycleBonusUsd()-(factories.getDistanceKm()*3);
+            return finalBenefit;
+        }
+        else{
+            finalBenefit = totalPurchaseBenefit-(factories.getDistanceKm()*3);
+            return finalBenefit;
+        }
     }
 
     public boolean isListEmpty(Factories factories){
         List<Trucks> trucksList = trucksService.findByIsFullFalseAndCountry(factories.getCountry_factories(),this.requiredKg);
+        trucksList.stream().filter(truck -> !redisService.isLockedRedis("lockedTruck:"+truck.getId())).collect(Collectors.toList());
         if(!trucksList.isEmpty()){
             return true;
         }
@@ -74,11 +97,10 @@ public class SendTrucksToFactoriesService {
         if(factories.getTruck()==null)
         {
             List<Trucks> trucksToSend = trucksService.findByIsFullFalseAndCountry(factories.getCountry_factories(),this.requiredKg);
-            trucksProducer.sendTrucksData(trucksToSend, getRequiredKg());
+            trucksProducer.sendTrucksData(trucksToSend.stream().filter(truck -> !redisService.isLockedRedis("lockedTruck:"+truck.getId())).collect(Collectors.toList()), getRequiredKg());
             return true;
         }
-        else
-        {
+        else{
             return false;
         }
     }
@@ -91,7 +113,9 @@ public class SendTrucksToFactoriesService {
         if(idList.contains(id)){
             return true;
         }
-        else{return false;}
+        else{
+            return false;
+        }
     }
 
     public boolean unloadTruck(int truckId) {
@@ -105,9 +129,8 @@ public class SendTrucksToFactoriesService {
             unloadTruck.setFull(false);
             unloadTruck.setFactory(null);
 
-            companiesService.addCompanies(company);
-            factoriesService.addFactories(unloadedFactory);
-            trucksService.addTruck(unloadTruck);
+            factoriesService.addFactoriesRedis(unloadedFactory);
+            trucksService.addTruckRedis(unloadTruck);
             return true;
         }
         else{

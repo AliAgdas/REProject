@@ -1,5 +1,6 @@
 package org.example.reproject.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.reproject.entity.*;
 import org.example.reproject.service.*;
@@ -16,17 +17,15 @@ public class SendTrucksToFactoriesController {
     private final TrucksService trucksService;
 
     @GetMapping("/sendTruck")
-    public ResponseEntity<?>sendTruck(@RequestParam int factoryId, @RequestParam int kg,@RequestParam int materialId) {
+    public ResponseEntity<?>sendTruck(@RequestParam int factoryId, @RequestParam int kg,@RequestParam int materialId) throws JsonProcessingException {
         Factories factory = sendTrucksToFactoriesService.getFactories(factoryId);
         Materials material = sendTrucksToFactoriesService.getMaterial(materialId);
         sendTrucksToFactoriesService.setRequiredKg(kg);
         if(sendTrucksToFactoriesService.isListEmpty(factory)) {
-
             if (sendTrucksToFactoriesService.processAndSendTruckData(factory)) {
-
                 if (sendTrucksToFactoriesService.isMaterialExists(factory, materialId)) {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new RuntimeException(e);

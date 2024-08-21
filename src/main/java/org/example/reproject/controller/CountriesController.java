@@ -29,7 +29,7 @@ public class CountriesController {
 
     @GetMapping("/get")
     public ResponseEntity<Countries> getCountries(@RequestParam int id) {
-        Countries country = countriesService.getCountries(id);
+        Countries country = countriesService.getCountriesRedis(id);
         return ResponseEntity.ok(country);
     }
 

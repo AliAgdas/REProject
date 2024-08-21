@@ -44,8 +44,9 @@ public class MaterialsService {
                 material = materialsRepository.findById(id).orElse(null);
                 if (material != null) {
                     redisService.saveRedis("material:" + id, material);
+                    logger.info("veri redise yeni kaydedildi");
                 }
-                logger.info("veri redise yeni kaydedildi");
+                else{logger.error("böyle bir veri yok");}
             }
             else{logger.info("veri redis den geldi");  }
 

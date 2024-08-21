@@ -16,7 +16,7 @@ public class MaterialsController {
 
     @PostMapping("/add")
     public ResponseEntity<Materials> addMaterials(@RequestBody Materials materials) {
-        Materials savedMaterial = materialsService.addMaterials(materials);
+        Materials savedMaterial = materialsService.addMaterialsRedis(materials);
         return ResponseEntity.ok(savedMaterial);
     }
 
@@ -29,7 +29,7 @@ public class MaterialsController {
 
     @GetMapping("/get")
     public ResponseEntity<Materials> getMaterials(@RequestParam int id) {
-        Materials materials = materialsService.getMaterials(id);
+        Materials materials = materialsService.getMaterialsRedis(id);
         return ResponseEntity.ok(materials);
     }
 

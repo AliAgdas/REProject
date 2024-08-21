@@ -47,8 +47,9 @@ public class FactoriesService {
                 factory = factoriesRepository.findById(id).orElse(null);
                 if (factory != null) {
                     redisService.saveRedis("factory:" + id, factory);
+                    logger.info("veri redise yeni kaydedildi");
                 }
-                logger.info("veri redise yeni kaydedildi");
+                else{logger.error("böyle bir veri yok");}
             }
             else{logger.info("veri redis den geldi");  }
 

@@ -44,8 +44,9 @@ public class CountriesService {
                 country = countriesRepository.findById(id).orElse(null);
                 if (country != null) {
                     redisService.saveRedis("country:" + id, country);
+                    logger.info("veri redise yeni kaydedildi");
                 }
-                logger.info("veri redise yeni kaydedildi");
+                else{logger.error("böyle bir veri yok");}
             }
             else{logger.info("veri redis den geldi");  }
 

@@ -53,8 +53,9 @@ public class CompaniesService {
                 company= companiesRepository.findById(id).orElse(null);
                 if (company != null) {
                     redisService.saveRedis("company:" + id, company);
+                    logger.info("veri redise yeni kaydedildi");
                 }
-                logger.info("veri redise yeni kaydedildi");
+                else{logger.error("böyle bir veri yok");}
             }
             else{logger.info("veri redis den geldi");  }
 

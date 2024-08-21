@@ -1,7 +1,6 @@
 package org.example.reproject.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.reproject.dto.*;
 import org.example.reproject.entity.*;
 import org.example.reproject.service.*;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,7 @@ public class TrucksController {
 
     @GetMapping("/get")
     public ResponseEntity<Trucks> getTruck(@RequestParam int id) {
-        Trucks truck = trucksService.getTruck(id);
+        Trucks truck = trucksService.getTruckRedis(id);
         return ResponseEntity.ok(truck);
     }
 }

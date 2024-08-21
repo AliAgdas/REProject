@@ -13,6 +13,12 @@ public class TrucksConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.FIFO_QUEUE_NAME)
     public void consumeTruckData(Trucks truck) {
+        if (isTerminatorMessage(truck)) {
+            System.out.println("Processing completed. Resetting firstMessageProcessed flag.");
+            firstMessageProcessed = false;
+            return;
+        }
+
         if (!firstMessageProcessed) {
             System.out.println("Processing first truck data: " + truck);
             firstMessageProcessed = true;
@@ -20,6 +26,10 @@ public class TrucksConsumer {
         } else {
             System.out.println("Processing others truck data: " + truck);
         }
+    }
+
+    private boolean isTerminatorMessage(Trucks truck) {
+        return truck.getId() == 0;
     }
 }
 

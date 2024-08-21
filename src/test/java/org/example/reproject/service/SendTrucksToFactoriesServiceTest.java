@@ -26,6 +26,9 @@ class SendTrucksToFactoriesServiceTest {
     private TrucksService trucksService;
 
     @Mock
+    private RedisService redisService;
+
+    @Mock
     private FactoriesService factoriesService;
 
     @InjectMocks
@@ -43,12 +46,14 @@ class SendTrucksToFactoriesServiceTest {
 
         Trucks truck = new Trucks();
         List<Trucks> trucksList = Collections.singletonList(truck);
-        given(trucksService.findByIsFullFalseAndCountry(factory.getCountry_factories(), sendTrucksToFactoriesService.getRequiredKg())).willReturn(trucksList);
 
+        given(trucksService.findByIsFullFalseAndCountry(factory.getCountry_factories(), sendTrucksToFactoriesService.getRequiredKg())).willReturn(trucksList);
+        given(redisService.isLockedRedis("lockedRedis:" + truck.getId())).willReturn(false);
         assertTrue(sendTrucksToFactoriesService.processAndSendTruckData(factory));
 
         verify(trucksProducer).sendTrucksData(trucksList, sendTrucksToFactoriesService.getRequiredKg());
     }
+
 
     @Test
     void testProcessAndSendTruckData_whenFactoryHasTruck_shouldNotSendTrucksData() {
@@ -58,6 +63,4 @@ class SendTrucksToFactoriesServiceTest {
         assertFalse(sendTrucksToFactoriesService.processAndSendTruckData(factory));
         verify(trucksProducer, org.mockito.Mockito.never()).sendTrucksData(org.mockito.Mockito.anyList(), org.mockito.Mockito.anyDouble());
     }
-
-
 }
