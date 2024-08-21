@@ -3,6 +3,7 @@ spring:
     name: REProject
   datasource:
     url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:REProject}
+    #url: jdbc:postgresql://db:5432/${POSTGRES_DB:REProject}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:456852}
     hikari:
@@ -19,6 +20,7 @@ spring:
 
   flyway:
     url: jdbc:postgresql://localhost:5432/REProject
+    #url: jdbc:postgresql://db:5432/REProject
     user: postgres
     password: 456852
     locations: classpath:db/migration
@@ -35,6 +37,7 @@ spring:
 
   rabbitmq:
     host: localhost
+    #host: rabbitmq
     port: 5672
     username: guest
     password: guest
@@ -42,4 +45,5 @@ spring:
   data:
     redis:
       host: localhost
+      #host: redis
       port: 6379

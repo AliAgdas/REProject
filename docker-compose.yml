@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   app:
     build: .
@@ -11,9 +12,10 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
+      - flyway
       - db
-      - redis
       - rabbitmq
+      - redis
     networks:
       - app-network
 
@@ -34,8 +36,22 @@ services:
     networks:
       - app-network
 
+  flyway:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db:5432/REProject -user=postgres -password=456852 -locations=filesystem:/flyway/sql migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - C:\Users\aagdas\IdeaProjects\REProject\src\main\resources\db\migration:/flyway/sql
+
+
+
   db:
     image: postgres:16
+    container_name: db
     environment:
       POSTGRES_DB: REProject
       POSTGRES_USER: postgres
